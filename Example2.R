@@ -16,12 +16,24 @@ classify_for <- function(beta, xtrain, ytrain, xtest, ytest){
   # [ToDo] Code discriminant analysis classifier using for loop
   
   # Calculate sample means based on training data
- 
-  
+  mu1 = colMeans(xtrain[ytrain == 1, ])
+  mu2 = colMeans(xtrain[ytrain == 2, ])  
   # Calculate class assignments for xtest in a for loop
+  ypred = c()
+  for( i in 1:nrow(xtest)){
+    loss1  = crossprod(xtest[i,] - mu1,beta)^2
+    loss2  = crossprod(xtest[i,] - mu2,beta)^2
+    if(loss1 > loss2){
+      y_tmp = 2
+    }
+    else{
+      y_tmp = 1
+    }
+    ypred = c(ypred,y_tmp)
+  }
   
   # Calculate % error using ytest
-
+  error = 1 - sum(ypred == ytest) / length(ytest)
   # Return predictions and error
   return(list(ypred = ypred, error = error))
 }
@@ -30,11 +42,15 @@ classify_vec <- function(beta, xtrain, ytrain, xtest, ytest){
   # [ToDo] Try to create vectorized version of classify_for
   
   # Calculate sample means based on training data
-  
+  mu1 = colMeans(xtrain[ytrain == 1, ])
+  mu2 = colMeans(xtrain[ytrain == 2, ]) 
   # Calculate class assignments for xtest using matrix and vector algebra
+  loss1_mat = crossprod(t(xtest) - mu1,beta)^2
+  loss2_mat = crossprod(t(xtest) - mu2,beta)^2
   
+  ypred = as.numeric(loss2_mat < loss1_mat) + 1
   # Calculate % error using ytest
- 
+  error = 1 - sum(ypred == ytest) / length(ytest)
   # Return predictions and error
   return(list(ypred = ypred, error = error))
 }
@@ -80,7 +96,11 @@ out1 = classify_for(beta, xtrain, ytrain, xtest, ytest)
 out2 = classify_vec(beta, xtrain, ytrain, xtest, ytest)
 
 # [ToDo] Verify the assignments agree with each other
-
+identical(out1,out2)
 # [ToDo] Use microbenchmark package to compare the timing
 
 library(microbenchmark)
+microbenchmark(
+  classify_for(beta, xtrain, ytrain, xtest, ytest),
+  classify_vec(beta, xtrain, ytrain, xtest, ytest)
+)
